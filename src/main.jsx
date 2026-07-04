@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  Archive,
   Bell,
   Bot,
   BriefcaseBusiness,
@@ -15,13 +14,16 @@ import {
   Folder,
   Heart,
   Info,
-  Menu,
+  LogIn,
+  LogOut,
   MessageCircle,
   MoreVertical,
   Paperclip,
   Plane,
+  RefreshCw,
   Search,
   Settings,
+  ShieldCheck,
   Smile,
   Star,
   Users,
@@ -29,7 +31,7 @@ import {
 } from "lucide-react";
 import "./styles.css";
 
-const chats = [
+const demoChats = [
   {
     id: "ai-devs",
     title: "AI Devs",
@@ -40,14 +42,13 @@ const chats = [
     palette: "violet",
     x: 36,
     y: 28,
-    tone: "more than 5000",
     handle: "@ai_devs",
     pinned: "Правила, roadmap и полезные ссылки",
     messages: [
       { author: "Мария К.", avatar: "МК", text: "Всем привет! Как прошел релиз? Делимся впечатлениями.", time: "10:15", accent: "teal" },
       { author: "Игорь", avatar: "И", text: "Все прошло гладко, спасибо команде! Отчет приложу ниже.", time: "10:17", accent: "blue", file: "release-report.pdf" },
-      { author: "Алексей", avatar: "А", text: "Отличная работа! Следующая цель - оптимизация производительности.", time: "10:21", accent: "green", reactions: ["👍 15", "🔥 6"] },
-      { author: "Ольга", avatar: "О", text: "Поддерживаю! Уже есть идеи 💡", time: "10:23", accent: "purple" }
+      { author: "Алексей", avatar: "А", text: "Отличная работа! Следующая цель - оптимизация производительности.", time: "10:21", accent: "green", reactions: ["15", "6"] },
+      { author: "Ольга", avatar: "О", text: "Поддерживаю. Уже есть идеи для следующей итерации.", time: "10:23", accent: "purple" }
     ]
   },
   {
@@ -60,14 +61,13 @@ const chats = [
     palette: "teal",
     x: 63,
     y: 51,
-    tone: "more than 5000",
     handle: "@cloud_general",
     pinned: "Правила чата и полезные ссылки",
     messages: [
-      { author: "Мария К.", avatar: "МК", text: "Всем привет! 👋 Как прошел релиз? Делимся впечатлениями.", time: "10:15", accent: "teal" },
+      { author: "Мария К.", avatar: "МК", text: "Всем привет! Как прошел релиз? Делимся впечатлениями.", time: "10:15", accent: "teal" },
       { author: "Игорь", avatar: "И", text: "Все прошло гладко, спасибо команде! Отчет приложу ниже.", time: "10:17", accent: "blue", file: "release-report.pdf" },
-      { author: "Алексей", avatar: "А", text: "Отличная работа! 🚀 Следующая цель - оптимизация производительности.", time: "10:21", accent: "green", reactions: ["👍 15", "🔥 6"] },
-      { author: "Ольга", avatar: "О", text: "Поддерживаю! Уже есть идеи 💡", time: "10:23", accent: "purple" }
+      { author: "Алексей", avatar: "А", text: "Отличная работа! Следующая цель - оптимизация производительности.", time: "10:21", accent: "green", reactions: ["15", "6"] },
+      { author: "Ольга", avatar: "О", text: "Поддерживаю. Уже есть идеи.", time: "10:23", accent: "purple" }
     ]
   },
   {
@@ -80,11 +80,10 @@ const chats = [
     palette: "blue",
     x: 72,
     y: 25,
-    tone: "more than 5000",
     handle: "@news",
     pinned: "Главные обновления продукта и инфраструктуры",
     messages: [
-      { author: "Редакция", avatar: "Р", text: "Новый дайджест уже в канале. Коротко: облако чатов стало основной навигацией.", time: "09:42", accent: "blue" },
+      { author: "Редакция", avatar: "Р", text: "Новый дайджест уже в канале. Облако чатов стало основной навигацией.", time: "09:42", accent: "blue" },
       { author: "Редакция", avatar: "Р", text: "Появился режим сортировки по активности.", time: "09:58", accent: "blue" },
       { author: "Редакция", avatar: "Р", text: "Вечером выкатим мобильную адаптацию.", time: "10:08", accent: "blue" }
     ]
@@ -99,7 +98,6 @@ const chats = [
     palette: "red",
     x: 28,
     y: 62,
-    tone: "1000 - 5000",
     handle: "@crimsonwars",
     pinned: "Патчноуты, матчи и баланс",
     messages: [
@@ -111,19 +109,18 @@ const chats = [
   {
     id: "memes",
     title: "Memes",
-    emoji: "😅",
+    icon: Smile,
     members: 701,
     online: 84,
     unread: 11,
     palette: "purple",
     x: 47,
     y: 74,
-    tone: "100 - 1000",
     handle: "@cloud_memes",
     pinned: "Легкий шум разрешен, токсичный - нет",
     messages: [
       { author: "Sasha", avatar: "S", text: "Нужен стикер с пузырем чата, который слишком популярен.", time: "13:18", accent: "purple" },
-      { author: "Kate", avatar: "K", text: "И маленький чат рядом: 'я тоже важный'.", time: "13:20", accent: "teal" },
+      { author: "Kate", avatar: "K", text: "И маленький чат рядом: я тоже важный.", time: "13:20", accent: "teal" },
       { author: "You", avatar: "Y", text: "Это уже продуктовая философия.", time: "13:21", accent: "green" }
     ]
   },
@@ -137,7 +134,6 @@ const chats = [
     palette: "slate",
     x: 20,
     y: 20,
-    tone: "less than 100",
     handle: "private",
     pinned: "Дейлики, релизы, приоритеты",
     messages: [
@@ -156,7 +152,6 @@ const chats = [
     palette: "cyan",
     x: 21,
     y: 42,
-    tone: "less than 100",
     handle: "private",
     pinned: "Планы на выходные",
     messages: [
@@ -168,14 +163,13 @@ const chats = [
   {
     id: "travel",
     title: "Travel Buddies",
-    emoji: "✈️",
+    icon: Plane,
     members: 126,
     online: 30,
     unread: 4,
     palette: "blue",
     x: 82,
     y: 63,
-    tone: "100 - 1000",
     handle: "@travel",
     pinned: "Маршруты и билеты",
     messages: [
@@ -187,14 +181,13 @@ const chats = [
   {
     id: "crypto",
     title: "Крипто Трейдеры",
-    emoji: "📈",
+    icon: FileText,
     members: 312,
     online: 64,
     unread: 0,
     palette: "teal",
     x: 12,
     y: 61,
-    tone: "100 - 1000",
     handle: "@crypto",
     pinned: "Без финансовых советов",
     messages: [
@@ -213,7 +206,6 @@ const chats = [
     palette: "teal",
     x: 55,
     y: 15,
-    tone: "less than 100",
     handle: "private",
     pinned: "Задачи сайта и инфраструктуры",
     messages: [
@@ -232,7 +224,6 @@ const chats = [
     palette: "slate",
     x: 58,
     y: 31,
-    tone: "less than 100",
     handle: "private",
     pinned: "Домашние планы",
     messages: [
@@ -251,7 +242,6 @@ const chats = [
     palette: "amber",
     x: 84,
     y: 41,
-    tone: "less than 100",
     handle: "@design_team",
     pinned: "Макеты, токены и компоненты",
     messages: [
@@ -263,14 +253,13 @@ const chats = [
   {
     id: "cinema",
     title: "Киночат",
-    emoji: "🎬",
+    icon: FileText,
     members: 42,
     online: 11,
     unread: 0,
     palette: "teal",
     x: 66,
     y: 78,
-    tone: "less than 100",
     handle: "@cinema",
     pinned: "Список фильмов недели",
     messages: [
@@ -297,30 +286,216 @@ const legendItems = [
   ["менее 100", "teal"]
 ];
 
+const iconByKind = {
+  private: Contact,
+  group: Users,
+  channel: Cloud,
+  chat: MessageCircle
+};
+
 function formatNumber(value) {
-  return new Intl.NumberFormat("ru-RU").format(value);
+  return new Intl.NumberFormat("ru-RU").format(Number(value) || 0);
 }
 
 function bubbleSize(members) {
   const min = Math.log10(2);
   const max = Math.log10(14000);
-  const normalized = (Math.log10(members + 2) - min) / (max - min);
-  return Math.round(72 + normalized * 260);
+  const normalized = (Math.log10((Number(members) || 1) + 2) - min) / (max - min);
+  return Math.round(72 + Math.max(0, Math.min(1, normalized)) * 260);
+}
+
+function initials(name) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "TG";
+}
+
+async function apiJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = payload.message || payload.error || `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+  return payload;
+}
+
+function normalizeRemoteChat(chat) {
+  const Icon = iconByKind[chat.kind] || MessageCircle;
+  const message = chat.messages?.[0] || {
+    author: chat.title,
+    avatar: initials(chat.title),
+    text: chat.preview || "История сообщений появится после выбора чата в Telegram.",
+    time: chat.lastMessageTime || "",
+    accent: chat.palette || "teal"
+  };
+
+  return {
+    ...chat,
+    icon: Icon,
+    online: chat.online || 0,
+    unread: chat.unread || 0,
+    handle: chat.handle || chat.kind || "telegram",
+    pinned: chat.pinned || "Реальный чат Telegram",
+    messages: [{ ...message, avatar: message.avatar || initials(message.author || chat.title) }]
+  };
+}
+
+function AuthPanel({
+  authForm,
+  configured,
+  loading,
+  notice,
+  onChange,
+  onSendCode,
+  onSignIn,
+  onPassword,
+  onRefresh
+}) {
+  return (
+    <section className="auth-card">
+      <div className="auth-icon">
+        <ShieldCheck size={30} />
+      </div>
+      <h2>Вход в Telegram</h2>
+      <p>
+        Подключаем настоящий аккаунт через MTProto. После входа облако
+        построится из ваших диалогов, групп и каналов.
+      </p>
+
+      {!configured && (
+        <div className="setup-note">
+          <strong>Нужны ключи Telegram API</strong>
+          <span>
+            На сервере заполните `TELEGRAM_API_ID` и `TELEGRAM_API_HASH` в
+            файле `.env`. Их выдает my.telegram.org в разделе API development tools.
+          </span>
+        </div>
+      )}
+
+      <div className="auth-form">
+        <label>
+          <span>Телефон</span>
+          <input
+            value={authForm.phoneNumber}
+            onChange={(event) => onChange("phoneNumber", event.target.value)}
+            placeholder="+79991234567"
+            disabled={!configured || loading}
+            inputMode="tel"
+          />
+        </label>
+        <button onClick={onSendCode} disabled={!configured || loading}>
+          <LogIn size={18} />
+          Получить код
+        </button>
+
+        <label>
+          <span>Код из Telegram</span>
+          <input
+            value={authForm.code}
+            onChange={(event) => onChange("code", event.target.value)}
+            placeholder="12345"
+            disabled={!configured || loading}
+            inputMode="numeric"
+          />
+        </label>
+        <button onClick={onSignIn} disabled={!configured || loading}>
+          <ShieldCheck size={18} />
+          Войти
+        </button>
+
+        {authForm.needsPassword && (
+          <>
+            <label>
+              <span>Пароль 2FA</span>
+              <input
+                type="password"
+                value={authForm.password}
+                onChange={(event) => onChange("password", event.target.value)}
+                placeholder="Пароль облачного Telegram"
+                disabled={loading}
+              />
+            </label>
+            <button onClick={onPassword} disabled={loading}>
+              <ShieldCheck size={18} />
+              Подтвердить 2FA
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className={notice.kind === "error" ? "auth-notice error" : "auth-notice"}>
+        {notice.text || "Демо-облако остается доступным, пока аккаунт не подключен."}
+      </div>
+
+      <button className="ghost-button" onClick={onRefresh} disabled={loading}>
+        <RefreshCw size={18} />
+        Проверить подключение
+      </button>
+    </section>
+  );
 }
 
 function App() {
   const [selectedId, setSelectedId] = useState("general");
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState("members");
-  const selected = chats.find((chat) => chat.id === selectedId) ?? chats[0];
+  const [status, setStatus] = useState({ loading: true, configured: false, authorized: false, user: null });
+  const [remoteChats, setRemoteChats] = useState([]);
+  const [authForm, setAuthForm] = useState({ phoneNumber: "", code: "", password: "", needsPassword: false });
+  const [notice, setNotice] = useState({ kind: "info", text: "" });
+
+  async function refreshStatus() {
+    setStatus((current) => ({ ...current, loading: true }));
+    try {
+      const payload = await apiJson("/api/telegram/status");
+      setStatus({ ...payload, loading: false });
+      if (payload.authorized) {
+        await loadChats();
+      }
+    } catch (error) {
+      setStatus({ loading: false, configured: false, authorized: false, user: null });
+      setNotice({ kind: "error", text: error.message });
+    }
+  }
+
+  async function loadChats() {
+    const payload = await apiJson("/api/telegram/chats?limit=80");
+    setRemoteChats((payload.chats || []).map(normalizeRemoteChat));
+  }
+
+  useEffect(() => {
+    refreshStatus();
+  }, []);
+
+  const activeChats = status.authorized && remoteChats.length ? remoteChats : demoChats;
+
+  useEffect(() => {
+    if (activeChats.length && !activeChats.some((chat) => chat.id === selectedId)) {
+      setSelectedId(activeChats[0].id);
+    }
+  }, [activeChats, selectedId]);
+
+  const selected = activeChats.find((chat) => chat.id === selectedId) ?? activeChats[0];
+  const SelectedIcon = selected?.icon || iconByKind[selected?.kind] || MessageCircle;
 
   const filteredChats = useMemo(() => {
     const term = query.trim().toLowerCase();
-    const visible = chats.filter((chat) => {
+    const visible = activeChats.filter((chat) => {
       return (
         !term ||
         chat.title.toLowerCase().includes(term) ||
-        chat.handle.toLowerCase().includes(term)
+        String(chat.handle || "").toLowerCase().includes(term)
       );
     });
 
@@ -328,20 +503,100 @@ function App() {
       if (sortMode === "activity") return b.unread + b.online / 100 - (a.unread + a.online / 100);
       return b.members - a.members;
     });
-  }, [query, sortMode]);
+  }, [activeChats, query, sortMode]);
+
+  function changeAuthField(field, value) {
+    setAuthForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function sendCode() {
+    setStatus((current) => ({ ...current, loading: true }));
+    setNotice({ kind: "info", text: "Отправляю код в Telegram..." });
+    try {
+      const payload = await apiJson("/api/telegram/send-code", {
+        method: "POST",
+        body: JSON.stringify({ phoneNumber: authForm.phoneNumber })
+      });
+      setNotice({
+        kind: "info",
+        text: payload.isCodeViaApp
+          ? "Код отправлен в Telegram на другом устройстве."
+          : "Код отправлен SMS или звонком Telegram."
+      });
+    } catch (error) {
+      setNotice({ kind: "error", text: error.message });
+    } finally {
+      setStatus((current) => ({ ...current, loading: false }));
+    }
+  }
+
+  async function signIn() {
+    setStatus((current) => ({ ...current, loading: true }));
+    setNotice({ kind: "info", text: "Проверяю код..." });
+    try {
+      const payload = await apiJson("/api/telegram/sign-in", {
+        method: "POST",
+        body: JSON.stringify({ phoneNumber: authForm.phoneNumber, code: authForm.code })
+      });
+      if (payload.needsPassword) {
+        setAuthForm((current) => ({ ...current, needsPassword: true }));
+        setNotice({ kind: "info", text: "Для аккаунта включен пароль 2FA." });
+      } else {
+        setAuthForm({ phoneNumber: "", code: "", password: "", needsPassword: false });
+        setNotice({ kind: "info", text: "Аккаунт подключен. Загружаю реальные чаты." });
+        await refreshStatus();
+      }
+    } catch (error) {
+      setNotice({ kind: "error", text: error.message });
+    } finally {
+      setStatus((current) => ({ ...current, loading: false }));
+    }
+  }
+
+  async function confirmPassword() {
+    setStatus((current) => ({ ...current, loading: true }));
+    try {
+      await apiJson("/api/telegram/password", {
+        method: "POST",
+        body: JSON.stringify({ password: authForm.password })
+      });
+      setAuthForm({ phoneNumber: "", code: "", password: "", needsPassword: false });
+      setNotice({ kind: "info", text: "Аккаунт подключен. Загружаю реальные чаты." });
+      await refreshStatus();
+    } catch (error) {
+      setNotice({ kind: "error", text: error.message });
+    } finally {
+      setStatus((current) => ({ ...current, loading: false }));
+    }
+  }
+
+  async function logout() {
+    setStatus((current) => ({ ...current, loading: true }));
+    try {
+      await apiJson("/api/telegram/logout", { method: "POST" });
+      setRemoteChats([]);
+      setSelectedId("general");
+      setNotice({ kind: "info", text: "Сессия Telegram удалена с сервера." });
+      await refreshStatus();
+    } catch (error) {
+      setNotice({ kind: "error", text: error.message });
+    } finally {
+      setStatus((current) => ({ ...current, loading: false }));
+    }
+  }
 
   return (
     <main className="telegram-shell">
       <aside className="tg-sidebar">
         <div className="cloud-logo" aria-label="CloudChat">
-          <Cloud size={28} />
+          <Cloud size={30} />
         </div>
 
         <nav className="tg-nav" aria-label="Навигация">
           {navItems.map(([label, Icon, active, badge]) => (
             <button className={active ? "tg-nav-item active" : "tg-nav-item"} key={label}>
               <span>
-                <Icon size={25} strokeWidth={1.8} />
+                <Icon size={26} strokeWidth={1.8} />
                 {badge && <b>{badge}</b>}
               </span>
               <small>{label}</small>
@@ -350,9 +605,9 @@ function App() {
         </nav>
 
         <div className="account">
-          <div className="account-avatar">А</div>
+          <div className="account-avatar">{status.user ? initials(status.user.name) : "A"}</div>
           <i />
-          <span>Алексей</span>
+          <span>{status.user?.firstName || status.user?.username || "Алексей"}</span>
           <ChevronDown size={14} />
         </div>
         <button className="more-button" aria-label="Еще">
@@ -392,6 +647,17 @@ function App() {
             </button>
           </div>
 
+          <div className="status-strip">
+            <span className={status.authorized ? "status-pill live" : "status-pill"}>
+              {status.authorized ? "Telegram подключен" : "Демо-режим"}
+            </span>
+            {status.authorized && (
+              <button onClick={logout} title="Выйти из Telegram" disabled={status.loading}>
+                <LogOut size={18} />
+              </button>
+            )}
+          </div>
+
           <div className="size-hint">
             <Info size={18} />
             <span>Размер круга зависит<br />от количества участников</span>
@@ -409,7 +675,7 @@ function App() {
           </button>
 
           {filteredChats.map((chat, index) => {
-            const Icon = chat.icon;
+            const Icon = chat.icon || iconByKind[chat.kind] || MessageCircle;
             const size = bubbleSize(chat.members);
             const titleSize = Math.max(12, Math.min(32, Math.round(size * 0.1)));
             const countSize = Math.max(11, Math.min(25, Math.round(size * 0.078)));
@@ -431,7 +697,7 @@ function App() {
                 aria-label={`${chat.title}, ${chat.members} участников`}
               >
                 <span className="planet-icon">
-                  {Icon ? <Icon size={34} strokeWidth={1.8} /> : chat.emoji}
+                  <Icon size={34} strokeWidth={1.8} />
                 </span>
                 <strong>{chat.title}</strong>
                 <em>{formatNumber(chat.members)}</em>
@@ -467,83 +733,102 @@ function App() {
       </section>
 
       <aside className="chat-pane">
-        <header className="chat-head">
-          <div className={`chat-avatar avatar-${selected.palette}`}>
-            {selected.icon ? <selected.icon size={28} /> : selected.emoji}
-          </div>
-          <div>
-            <h2>{selected.title}</h2>
-            <p>{formatNumber(selected.members)} участник, {formatNumber(selected.online)} онлайн</p>
-          </div>
-          <div className="chat-actions">
-            <button aria-label="Поиск">
-              <Search size={23} />
-            </button>
-            <button aria-label="Закрепить">
-              <Star size={22} />
-            </button>
-            <button aria-label="Меню">
-              <MoreVertical size={23} />
-            </button>
-          </div>
-        </header>
-
-        <section className="pinned">
-          <div>
-            <strong>Закреплённое сообщение</strong>
-            <span>{selected.pinned}</span>
-          </div>
-          <Star size={20} />
-        </section>
-
-        <div className="day-divider">
-          <span>Сегодня</span>
-        </div>
-
-        <section className="messages">
-          {selected.messages.map((message) => (
-            <article className="message-row" key={`${selected.id}-${message.author}-${message.time}`}>
-              <div className={`userpic userpic-${message.accent}`}>{message.avatar}</div>
-              <div className="bubble">
-                <div className="meta">
-                  <strong>{message.author}</strong>
-                  <time>{message.time}</time>
-                </div>
-                <p>{message.text}</p>
-                {message.file && (
-                  <div className="file-card">
-                    <FileText size={25} />
-                    <div>
-                      <strong>{message.file}</strong>
-                      <span>2.4 MB</span>
-                    </div>
-                  </div>
-                )}
-                {message.reactions && (
-                  <div className="reactions">
-                    {message.reactions.map((reaction) => (
-                      <span key={reaction}>{reaction}</span>
-                    ))}
-                  </div>
-                )}
+        {status.authorized ? (
+          <>
+            <header className="chat-head">
+              <div className={`chat-avatar avatar-${selected.palette}`}>
+                <SelectedIcon size={28} />
               </div>
-            </article>
-          ))}
-        </section>
+              <div>
+                <h2>{selected.title}</h2>
+                <p>
+                  {formatNumber(selected.members)} участник{selected.members === 1 ? "" : "ов"}
+                  {selected.online ? `, ${formatNumber(selected.online)} онлайн` : ""}
+                </p>
+              </div>
+              <div className="chat-actions">
+                <button aria-label="Поиск">
+                  <Search size={23} />
+                </button>
+                <button aria-label="Закрепить">
+                  <Star size={22} />
+                </button>
+                <button aria-label="Меню">
+                  <MoreVertical size={23} />
+                </button>
+              </div>
+            </header>
 
-        <footer className="composer">
-          <button aria-label="Прикрепить">
-            <Paperclip size={25} />
-          </button>
-          <label>
-            <input placeholder="Напишите сообщение..." />
-            <Smile size={23} />
-          </label>
-          <button className="send" aria-label="Отправить">
-            <Plane size={23} fill="currentColor" />
-          </button>
-          <small>••• {formatNumber(selected.online)} пользователей печатают...</small>
-        </footer>
+            <section className="pinned">
+              <div>
+                <strong>Закрепленное сообщение</strong>
+                <span>{selected.pinned}</span>
+              </div>
+              <Star size={20} />
+            </section>
+
+            <div className="day-divider">
+              <span>Сегодня</span>
+            </div>
+
+            <section className="messages">
+              {selected.messages.map((message) => (
+                <article className="message-row" key={`${selected.id}-${message.author}-${message.time}-${message.text}`}>
+                  <div className={`userpic userpic-${message.accent}`}>{message.avatar}</div>
+                  <div className="bubble">
+                    <div className="meta">
+                      <strong>{message.author}</strong>
+                      <time>{message.time}</time>
+                    </div>
+                    <p>{message.text}</p>
+                    {message.file && (
+                      <div className="file-card">
+                        <FileText size={25} />
+                        <div>
+                          <strong>{message.file}</strong>
+                          <span>2.4 MB</span>
+                        </div>
+                      </div>
+                    )}
+                    {message.reactions && (
+                      <div className="reactions">
+                        {message.reactions.map((reaction) => (
+                          <span key={reaction}>{reaction}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </section>
+
+            <footer className="composer">
+              <button aria-label="Прикрепить">
+                <Paperclip size={25} />
+              </button>
+              <label>
+                <input placeholder="Напишите сообщение..." />
+                <Smile size={23} />
+              </label>
+              <button className="send" aria-label="Отправить">
+                <Plane size={23} fill="currentColor" />
+              </button>
+              <small>••• {formatNumber(selected.online)} пользователей печатают...</small>
+            </footer>
+          </>
+        ) : (
+          <AuthPanel
+            authForm={authForm}
+            configured={status.configured}
+            loading={status.loading}
+            notice={notice}
+            onChange={changeAuthField}
+            onSendCode={sendCode}
+            onSignIn={signIn}
+            onPassword={confirmPassword}
+            onRefresh={refreshStatus}
+          />
+        )}
       </aside>
     </main>
   );
